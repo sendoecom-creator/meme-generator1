@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp Voice Sticker Studio</title>
+  <style>
+    :root {
+      --bg: #0b141a;
+      --panel: #111b21;
+      --panel-2: #1c2830;
+      --panel-3: #24323b;
+      --border: #2a3942;
+      --text: #e9edef;
+      --muted: #8696a0;
+      --accent: #00a884;
+      --accent-hover: #06cf9c;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(0, 168, 132, 0.16);
+      border: 1px solid rgba(0, 168, 132, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: var(--panel-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .badge.ok { background: rgba(0, 168, 132, 0.16); color: var(--accent-hover); border-color: rgba(0, 168, 132, 0.35); }
+    .badge.warn { background: rgba(245, 158, 11, 0.16); color: var(--warn); border-color: rgba(245, 158, 11, 0.35); }
+    .badge.err { background: rgba(239, 68, 68, 0.16); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
+
+    /* Buttons & Inputs */
+    .btn {
+      background: var(--accent);
+      color: #0b141a;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.08s, background 0.15s;
+    }
+    .btn:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-sm { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+    .btn-secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--panel-3); }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .btn-danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.24); }
+
+    input[type="text"], select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--accent); }
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 168, 132, 0.2);
+      color: var(--accent-hover);
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+
+    /* Centered Login View */
+    .login-wrap {
+      max-width: 500px;
+      margin: 36px auto;
+      padding: 0 16px;
+    }
+    .pairing-code-box {
+      background: #080f14;
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      margin: 14px 0;
+    }
+    .pairing-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: var(--accent-hover);
+      margin: 6px 0;
+    }
+    .qr-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 250px;
+      margin: 12px 0;
+    }
+    .qr-box img { max-width: 240px; height: auto; display: block; }
+
+    /* Main Studio Grid */
+    .studio-wrap {
+      max-width: 1240px;
+      margin: 20px auto;
+      padding: 0 18px 36px;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .studio-wrap { grid-template-columns: 1fr; }
+    }
+
+    /* Dropzone */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: var(--panel-2);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(0, 168, 132, 0.08);
+    }
+    .dropzone input { display: none; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tab-btn {
+      flex: 1;
+      min-width: 105px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .tab-btn.active {
+      background: rgba(0, 168, 132, 0.18);
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Square Crop Editor */
+    .editor-panel {
+      margin-top: 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .editor-panel.visible { display: flex; }
+    .crop-stage-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .crop-stage {
+      width: 240px;
+      height: 240px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 2px solid var(--accent);
+      background-image: linear-gradient(45deg, #1b2830 25%, transparent 25%),
+        linear-gradient(-45deg, #1b2830 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1b2830 75%),
+        linear-gradient(-45deg, transparent 75%, #1b2830 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+    .crop-stage:active { cursor: grabbing; }
+    .crop-stage img, .crop-stage video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+      pointer-events: none;
+      max-width: none;
+      max-height: none;
+    }
+    .crop-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 33.333% 33.333%;
+    }
+    .control-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .slider-label b { color: var(--text); }
+
+    /* Malayalam Meme Soundboard */
+    .cat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .cat-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cat-pill.active {
+      background: rgba(0, 168, 132, 0.2);
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+    .sound-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 8px;
+      max-height: 225px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .sound-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .sound-card:hover { border-color: #465a66; }
+    .sound-card.selected {
+      border-color: var(--accent);
+      background: rgba(0, 168, 132, 0.18);
+    }
+    .sound-play {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: var(--panel-3);
+      color: var(--text);
+      font-size: 11px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .sound-play:hover { background: var(--accent); color: #0b141a; }
+    .sound-title { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sound-cat { font-size: 10px; color: var(--muted); }
+
+    /* Target & Send */
+    .divider { height: 1px; background: var(--border); margin: 18px 0; }
+    .preview-box {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .sticker-canvas {
+      width: 104px;
+      height: 104px;
+      background-image: linear-gradient(45deg, #1b2830 25%, transparent 25%),
+        linear-gradient(-45deg, #1b2830 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1b2830 75%),
+        linear-gradient(-45deg, transparent 75%, #1b2830 75%);
+      background-size: 14px 14px;
+      background-position: 0 0, 0 7px, 7px -7px, -7px 0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sticker-canvas img { max-width: 100%; max-height: 100%; }
+
+    .status-banner {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+    .status-banner.info { display: block; background: rgba(0, 168, 132, 0.15); color: var(--accent-hover); border: 1px solid rgba(0, 168, 132, 0.35); }
+    .status-banner.err { display: block; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+    details.tech-log { margin-top: 14px; }
+    details.tech-log summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+    .log-box {
+      margin-top: 8px;
+      background: #080f14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: #a7f3d0;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .rec-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--danger);
+      display: inline-block; animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+    .disclaimer-wrap {
+      max-width: 1240px;
+      margin: 16px auto 0;
+      padding: 0 18px;
+    }
+    .disclaimer-card {
+      background: linear-gradient(135deg, rgba(0, 168, 132, 0.12), rgba(17, 27, 33, 0.96));
+      border: 1px solid rgba(0, 168, 132, 0.45);
+      border-radius: 14px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    }
+    .disclaimer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .disclaimer-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .disclaimer-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sec-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(0, 168, 132, 0.16);
+      border: 1px solid rgba(0, 168, 132, 0.35);
+      color: #a7f3d0;
+    }
+    .disclaimer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #d1fae5;
+    }
+    .disclaimer-item {
+      background: rgba(11, 20, 26, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .disclaimer-item b { color: #34d399; }
+    .disclaimer-item.warn-box {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde68a;
+    }
+    .disclaimer-item.warn-box b { color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🔊</div>
+      <span>WhatsApp Voice Sticker Studio</span>
+    </div>
+    <div class="header-right">
+      <span id="connBadge" class="badge">Connecting…</span>
+      <button id="logoutBtn" class="btn btn-danger btn-sm" style="display:none;" onclick="logoutWA()">Switch Account / Logout</button>
+    </div>
+  </header>
+
+  <div class="disclaimer-wrap">
+    <div class="disclaimer-card">
+      <div class="disclaimer-head">
+        <div class="disclaimer-title">🛡️ Privacy, Security &amp; Usage Disclaimer — Hosted Purely for Fun</div>
+        <div class="disclaimer-pills">
+          <span class="sec-pill">Zero Storage</span>
+          <span class="sec-pill">Session Isolated</span>
+          <span class="sec-pill">Rate Limited</span>
+          <span class="sec-pill">CSRF &amp; SSRF Protected</span>
+        </div>
+      </div>
+      <div class="disclaimer-grid">
+        <div class="disclaimer-item">
+          <b>🔒 Zero Data Storage (100% Secure):</b> We do <b>not</b> collect, steal, or save any personal data, chats, contacts, images, videos, or audio files in any database or disk. Everything runs in temporary cache/memory and clears automatically on refresh or logout.
+        </div>
+        <div class="disclaimer-item">
+          <b>🎉 Hosted Just for Fun — Securely Log In:</b> You can safely link your WhatsApp (via Phone + Code or QR) to create and send voice stickers. Each user's session is strictly isolated so nobody else can access your account.
+        </div>
+        <div class="disclaimer-item warn-box">
+          <b>⚠️ Content &amp; Ban Disclaimer:</b> Please do <b>not</b> upload or send <b>adult / NSFW</b> or policy-violating content. If your WhatsApp account gets banned or restricted for sending adult or prohibited media, <b>we are not responsible</b>—use responsibly.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN VIEW (Shown when WhatsApp is not connected) -->
+  <div id="loginView" class="login-wrap" style="display:none;">
+    <div class="card">
+      <h2 style="margin:0 0 6px;font-size:19px;">Connect Your WhatsApp</h2>
+      <p class="muted" style="margin:0 0 16px;">Link your mobile WhatsApp using your <b>Phone Number &amp; Code (OTP)</b> or by scanning the <b>QR Code</b>. Works even without WhatsApp Beta.</p>
+
+      <div class="tabs">
+        <button type="button" class="tab-btn active" onclick="switchLoginTab('phone', this)">📱 Phone Number + Code</button>
+        <button type="button" class="tab-btn" onclick="switchLoginTab('qr', this)">📷 Scan QR Code</button>
+      </div>
+
+      <!-- Phone Number + 8-Digit Code -->
+      <div id="login-tab-phone" class="tab-pane active">
+        <label for="pairPhoneInput">Mobile Number (with Country Code)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="pairPhoneInput" value="+91" placeholder="+919895061390" />
+          <button type="button" class="btn" id="getPairBtn" onclick="requestPairingCode()" style="white-space:nowrap;">Get Code</button>
+        </div>
+
+        <div id="pairingResult" style="display:none;">
+          <div class="pairing-code-box">
+            <div class="muted" style="font-size:12px;">Enter this code on your phone:</div>
+            <div id="pairingCodeText" class="pairing-code">---- ----</div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="copyPairingCode()">📋 Copy Code</button>
+          </div>
+          <ol class="muted" style="padding-left:18px;margin:8px 0 0;">
+            <li>Open <b>WhatsApp</b> on your mobile phone.</li>
+            <li>Tap <b>Linked Devices → Link a Device</b>.</li>
+            <li>Tap <b>Link with phone number instead</b> and enter the code above.</li>
+          </ol>
+        </div>
+        <div id="pairError" class="status-banner err"></div>
+      </div>
+
+      <!-- QR Code Tab -->
+      <div id="login-tab-qr" class="tab-pane">
+        <p class="muted" style="margin:0;">Open WhatsApp on your phone → <b>Linked Devices → Link a Device</b> and scan this QR code:</p>
+        <div class="qr-box" id="qrBox">
+          <span style="color:#555;font-size:13px;">Loading QR code…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDIO VIEW (Shown once WhatsApp is connected) -->
+  <div id="studioView" class="studio-wrap" style="display:none;">
+    <!-- Left Column: Visual Upload & 1:1 Square Crop Editor -->
+    <div class="card">
+      <div class="step-title"><span class="step-num">1</span> Choose Sticker Image / GIF / Video</div>
+
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="visualInput" accept="image/*,video/*,.gif,.webp" />
+        <div style="font-size:26px;margin-bottom:4px;">🖼️</div>
+        <div style="font-weight:600;font-size:14px;" id="visualFileName">Click or drag &amp; drop Image, GIF, or Video</div>
+        <div class="muted" style="font-size:12px;">Auto-converted to 512×512 WhatsApp WebP sticker</div>
+      </label>
+
+      <div class="editor-panel" id="editorPanel">
+        <div class="crop-stage-wrap">
+          <div class="crop-stage" id="cropStage" title="Drag to adjust inside the 1:1 square">
+            <img id="editorImg" style="display:none;" />
+            <video id="editorVideo" style="display:none;" muted loop playsinline></video>
+            <div class="crop-grid"></div>
+          </div>
+          <span class="muted" style="font-size:11px;">Drag inside the square to frame your sticker</span>
+        </div>
+
+        <div>
+          <label>Square Fit Mode</label>
+          <div class="tabs" style="margin-bottom:0;">
+            <button type="button" class="tab-btn active" id="fitCropBtn" onclick="setFitMode('crop')">✂️ Square Crop (Fill)</button>
+            <button type="button" class="tab-btn" id="fitContainBtn" onclick="setFitMode('contain')">⬜ Fit Transparent</button>
+          </div>
+        </div>
+
+        <div id="cropSliders">
+          <div class="slider-label"><span>Zoom</span><b id="zoomVal">1.00×</b></div>
+          <input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1" oninput="onEditChange()" />
+
+          <div class="control-row" style="margin-top:6px;">
+            <div>
+              <div class="slider-label"><span>Pan X</span><b id="panXVal">0%</b></div>
+              <input type="range" id="panXSlider" min="-1" max="1" step="0.02" value="0" oninput="onEditChange()" />
+            </div>
+            <div>
+              <div class="slider-label"><span>Pan Y</span><b id="panYVal">0%</b></div>
+              <input type="range" id="panYSlider" min="-1" max="1" step="0.02" value="0" oninput="onEditChange()" />
+            </div>
+          </div>
+        </div>
+
+        <div id="trimControls" style="display:none;">
+          <div class="control-row">
+            <div>
+              <div class="slider-label"><span>Trim Start</span><b id="startVal">0.0s</b></div>
+              <input type="range" id="startSlider" min="0" max="10" step="0.1" value="0" oninput="onTrimChange(true)" />
+            </div>
+            <div>
+              <div class="slider-label"><span>Length (1–5s)</span><b id="durVal">5.0s</b></div>
+              <input type="range" id="durSlider" min="1" max="5" step="0.2" value="5" oninput="onTrimChange(false)" />
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="rotateMedia()">↻ Rotate 90°</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="flipMedia()">⇄ Flip</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="resetEditor()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Voice / Malayalam Memes + Target + Send -->
+    <div class="card">
+      <div class="step-title"><span class="step-num">2</span> Choose Voice / Malayalam Meme Audio</div>
+
+      <div class="tabs">
+        <button type="button" class="tab-btn active" onclick="switchAudioTab('meme', this)">🎭 Malayalam Memes</button>
+        <button type="button" class="tab-btn" onclick="switchAudioTab('record', this)">🎙️ Record Voice</button>
+        <button type="button" class="tab-btn" onclick="switchAudioTab('upload', this)">🎵 Upload Audio</button>
+        <button type="button" class="tab-btn" onclick="switchAudioTab('video', this)">🎬 Video Audio</button>
+      </div>
+
+      <div id="audio-tab-meme" class="tab-pane active">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" id="memeSearchInput" placeholder="Search online (e.g. innocent, suraj, bgm, cid moosa)…" onkeydown="if(event.key==='Enter') searchOnlineSounds()" />
+          <button type="button" class="btn btn-secondary btn-sm" onclick="searchOnlineSounds()">🔍 Search</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="loadLocalSounds()">Local</button>
+        </div>
+        <div id="catPills" class="cat-pills"></div>
+        <div id="soundGrid" class="sound-grid">
+          <span class="muted">Loading Malayalam meme dialogues &amp; BGM…</span>
+        </div>
+        <div id="selectedSoundInfo" class="muted" style="margin-top:8px;color:var(--accent-hover);font-weight:600;"></div>
+        <audio id="soundPreviewPlayer" style="display:none;"></audio>
+      </div>
+
+      <div id="audio-tab-record" class="tab-pane">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button type="button" id="recStartBtn" class="btn btn-secondary" onclick="startRecording()">🎙️ Start Recording</button>
+          <button type="button" id="recStopBtn" class="btn btn-danger" style="display:none;" onclick="stopRecording()">
+            <span class="rec-dot"></span> Stop (<span id="recTimer">0.0s</span>)
+          </button>
+          <span id="recStatus" class="muted">Max 8 seconds</span>
+        </div>
+        <audio id="recPlayer" controls style="display:none;width:100%;margin-top:10px;"></audio>
+      </div>
+
+      <div id="audio-tab-upload" class="tab-pane">
+        <input type="file" id="audioInput" accept="audio/*,.mp3,.wav,.ogg,.oga,.opus,.m4a,.aac,.flac,.wma,.amr,.3gp,.aiff,.aif,.caf,.ac3,.mp4,.webm,.mkv,.mov" onchange="onAudioFilePicked(this)" style="width:100%;padding:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;color:var(--text);" />
+        <div class="muted" style="font-size:11px;margin-top:6px;">Supports all formats: MP3, WAV, OGG, OPUS, M4A, AAC, FLAC, WMA, AMR, 3GP, AIFF, WebM, MP4 audio, etc.</div>
+        <audio id="uploadAudioPlayer" controls style="display:none;width:100%;margin-top:10px;"></audio>
+      </div>
+
+      <div id="audio-tab-video" class="tab-pane">
+        <p class="muted" style="margin:0;">Audio will be extracted automatically from the trimmed section of your uploaded video.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="step-title"><span class="step-num">3</span> Select Chat &amp; Send</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div>
+          <label for="chatSelect">Choose Chat</label>
+          <div style="display:flex;gap:6px;">
+            <select id="chatSelect">
+              <option value="__SELF__">My Self (Saved Messages / Test)</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" type="button" onclick="loadChats()" title="Refresh Chats">↻</button>
+          </div>
+        </div>
+        <div>
+          <label for="customPhone">Or Enter Phone Number</label>
+          <input type="text" id="customPhone" placeholder="e.g. +919895061390" />
+        </div>
+      </div>
+
+      <div id="previewSection" style="display:none;">
+        <div class="preview-box">
+          <div class="sticker-canvas">
+            <img id="previewImg" alt="Sticker preview" />
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <div id="previewMeta" class="muted" style="margin-bottom:6px;"></div>
+            <audio id="previewAudio" controls style="width:100%;height:34px;"></audio>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" id="convertBtn" onclick="convertSticker()">👁️ Preview</button>
+        <button type="button" class="btn" id="sendBtn" onclick="sendSticker()" style="flex:1;">🚀 Convert &amp; Send Voice Sticker</button>
+      </div>
+
+      <div id="statusBanner" class="status-banner"></div>
+
+      <details class="tech-log">
+        <summary>Technical Details / Debug Log</summary>
+        <div id="logBox" class="log-box">Ready.</div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    let activeAudioMode = "meme";
+    let localSounds = [];
+    let displayedSounds = [];
+    let selectedSoundId = null;
+    let activeCategory = "All";
+    let recordedBlob = null;
+    let mediaRecorder = null;
+    let recChunks = [];
+    let recInterval = null;
+    let recStartTime = 0;
+    let converted = null;
+    let waReady = false;
+    let chatsLoaded = false;
+
+    // Editor state
+    let fitMode = "crop";
+    let rotateDeg = 0;
+    let flipH = false;
+    let mediaNaturalW = 512;
+    let mediaNaturalH = 512;
+    let isVideoMedia = false;
+    let visualObjUrl = null;
+    const STAGE_SIZE = 240;
+
+    function getCookie(name) {
+      const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+      return m ? decodeURIComponent(m[2]) : "";
+    }
+
+    function log(msg) {
+      const box = document.getElementById("logBox");
+      const ts = new Date().toLocaleTimeString();
+      box.textContent += `\n[${ts}] ${msg}`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showBanner(msg, isError = false) {
+      const el = document.getElementById("statusBanner");
+      el.className = "status-banner " + (isError ? "err" : "info");
+      el.textContent = msg;
+    }
+
+    function switchLoginTab(mode, btn) {
+      btn.parentElement.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("login-tab-phone").classList.toggle("active", mode === "phone");
+      document.getElementById("login-tab-qr").classList.toggle("active", mode === "qr");
+    }
+
+    function switchAudioTab(mode, btn) {
+      activeAudioMode = mode;
+      btn.parentElement.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      ["meme", "record", "upload", "video"].forEach(t => {
+        document.getElementById("audio-tab-" + t).classList.toggle("active", t === mode);
+      });
+      converted = null;
+    }
+
+    // Visual Dropzone & File Input
+    const dropzone = document.getElementById("dropzone");
+    const visualInput = document.getElementById("visualInput");
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        visualInput.files = e.dataTransfer.files;
+        handleVisualFile(e.dataTransfer.files[0]);
+      }
+    });
+    visualInput.addEventListener("change", (e) => {
+      if (e.target.files[0]) handleVisualFile(e.target.files[0]);
+    });
+
+    function handleVisualFile(file) {
+      converted = null;
+      document.getElementById("visualFileName").textContent = file.name;
+      if (visualObjUrl) URL.revokeObjectURL(visualObjUrl);
+      visualObjUrl = URL.createObjectURL(file);
+
+      const imgEl = document.getElementById("editorImg");
+      const vidEl = document.getElementById("editorVideo");
+      const trimBox = document.getElementById("trimControls");
+
+      resetEditor(false);
+      document.getElementById("editorPanel").classList.add("visible");
+
+      if (file.type.startsWith("video/")) {
+        isVideoMedia = true;
+        imgEl.style.display = "none";
+        vidEl.style.display = "block";
+        vidEl.src = visualObjUrl;
+        vidEl.onloadedmetadata = () => {
+          mediaNaturalW = vidEl.videoWidth || 512;
+          mediaNaturalH = vidEl.videoHeight || 512;
+          const totalDur = Math.max(1, vidEl.duration || 5);
+          const startSlider = document.getElementById("startSlider");
+          const durSlider = document.getElementById("durSlider");
+          startSlider.max = Math.max(0, (totalDur - 0.5).toFixed(1));
+          startSlider.value = 0;
+          durSlider.max = Math.min(5, totalDur).toFixed(1);
+          durSlider.value = Math.min(5, totalDur).toFixed(1);
+          trimBox.style.display = "block";
+          onTrimChange(true);
+          renderStage();
+          vidEl.play().catch(() => {});
+        };
+      } else {
+        isVideoMedia = false;
+        vidEl.style.display = "none";
+        vidEl.pause();
+        trimBox.style.display = "none";
+        imgEl.style.display = "block";
+        imgEl.src = visualObjUrl;
+        imgEl.onload = () => {
+          mediaNaturalW = imgEl.naturalWidth || 512;
+          mediaNaturalH = imgEl.naturalHeight || 512;
+          renderStage();
+        };
+      }
+    }
+
+    function setFitMode(mode) {
+      fitMode = mode;
+      document.getElementById("fitCropBtn").classList.toggle("active", mode === "crop");
+      document.getElementById("fitContainBtn").classList.toggle("active", mode === "contain");
+      document.getElementById("cropSliders").style.display = mode === "crop" ? "block" : "none";
+      onEditChange();
+    }
+
+    function rotateMedia() { rotateDeg = (rotateDeg + 90) % 360; onEditChange(); }
+    function flipMedia() { flipH = !flipH; onEditChange(); }
+    function resetEditor(redraw = true) {
+      fitMode = "crop"; rotateDeg = 0; flipH = false;
+      document.getElementById("fitCropBtn").classList.add("active");
+      document.getElementById("fitContainBtn").classList.remove("active");
+      document.getElementById("cropSliders").style.display = "block";
+      document.getElementById("zoomSlider").value = 1;
+      document.getElementById("panXSlider").value = 0;
+      document.getElementById("panYSlider").value = 0;
+      if (redraw) onEditChange();
+    }
+
+    function onTrimChange(seek) {
+      const start = parseFloat(document.getElementById("startSlider").value) || 0;
+      const dur = parseFloat(document.getElementById("durSlider").value) || 5;
+      document.getElementById("startVal").textContent = start.toFixed(1) + "s";
+      document.getElementById("durVal").textContent = dur.toFixed(1) + "s";
+      const vid = document.getElementById("editorVideo");
+      if (seek && isVideoMedia && vid.readyState >= 1) vid.currentTime = start;
+      converted = null;
+    }
+
+    document.getElementById("editorVideo").addEventListener("timeupdate", () => {
+      if (!isVideoMedia) return;
+      const vid = document.getElementById("editorVideo");
+      const start = parseFloat(document.getElementById("startSlider").value) || 0;
+      const dur = parseFloat(document.getElementById("durSlider").value) || 5;
+      if (vid.currentTime >= start + dur || vid.currentTime < start) vid.currentTime = start;
+    });
+
+    function onEditChange() { converted = null; renderStage(); }
+
+    function renderStage() {
+      const zoom = parseFloat(document.getElementById("zoomSlider").value) || 1;
+      const panX = parseFloat(document.getElementById("panXSlider").value) || 0;
+      const panY = parseFloat(document.getElementById("panYSlider").value) || 0;
+      document.getElementById("zoomVal").textContent = zoom.toFixed(2) + "×";
+      document.getElementById("panXVal").textContent = Math.round(panX * 100) + "%";
+      document.getElementById("panYVal").textContent = Math.round(panY * 100) + "%";
+
+      const el = isVideoMedia ? document.getElementById("editorVideo") : document.getElementById("editorImg");
+      const rotSwap = rotateDeg === 90 || rotateDeg === 270;
+      const effW = rotSwap ? mediaNaturalH : mediaNaturalW;
+      const effH = rotSwap ? mediaNaturalW : mediaNaturalH;
+
+      const baseScale = fitMode === "crop"
+        ? Math.max(STAGE_SIZE / effW, STAGE_SIZE / effH) * zoom
+        : Math.min(STAGE_SIZE / effW, STAGE_SIZE / effH);
+
+      const dispW = mediaNaturalW * baseScale;
+      const dispH = mediaNaturalH * baseScale;
+      el.style.width = dispW + "px";
+      el.style.height = dispH + "px";
+
+      const drawnW = rotSwap ? dispH : dispW;
+      const drawnH = rotSwap ? dispW : dispH;
+      const maxOffX = Math.max(0, (drawnW - STAGE_SIZE) / 2);
+      const maxOffY = Math.max(0, (drawnH - STAGE_SIZE) / 2);
+      const tx = fitMode === "crop" ? -panX * maxOffX : 0;
+      const ty = fitMode === "crop" ? -panY * maxOffY : 0;
+      el.style.transform = `translate(-50%, -50%) translate(${tx}px, ${ty}px) rotate(${rotateDeg}deg) scaleX(${flipH ? -1 : 1})`;
+    }
+
+    (() => {
+      const stage = document.getElementById("cropStage");
+      let dragging = false, lastX = 0, lastY = 0;
+      stage.addEventListener("pointerdown", (e) => {
+        if (fitMode !== "crop") return;
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        stage.setPointerCapture(e.pointerId);
+      });
+      stage.addEventListener("pointermove", (e) => {
+        if (!dragging || fitMode !== "crop") return;
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        const px = document.getElementById("panXSlider"), py = document.getElementById("panYSlider");
+        px.value = Math.max(-1, Math.min(1, parseFloat(px.value) - dx / 90));
+        py.value = Math.max(-1, Math.min(1, parseFloat(py.value) - dy / 90));
+        onEditChange();
+      });
+      stage.addEventListener("pointerup", () => { dragging = false; });
+      stage.addEventListener("pointercancel", () => { dragging = false; });
+    })();
+
+    // WhatsApp Status & Phone Pairing
+    async function pollStatus() {
+      try {
+        const res = await fetch("/api/status/");
+        const data = await res.json();
+        const badge = document.getElementById("connBadge");
+        const loginView = document.getElementById("loginView");
+        const studioView = document.getElementById("studioView");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (data.status === "ready") {
+          waReady = true;
+          badge.className = "badge ok";
+          badge.textContent = "Connected: +" + (data.me || "WhatsApp");
+          loginView.style.display = "none";
+          studioView.style.display = "grid";
+          logoutBtn.style.display = "inline-flex";
+          if (!chatsLoaded) { chatsLoaded = true; loadChats(); }
+        } else if (data.status === "qr" || data.status === "pairing") {
+          waReady = false;
+          chatsLoaded = false;
+          badge.className = "badge warn";
+          badge.textContent = data.status === "pairing" ? "Enter Code on Phone" : "Link WhatsApp";
+          loginView.style.display = "block";
+          studioView.style.display = "none";
+          logoutBtn.style.display = "inline-flex";
+          if (data.qr_base64) {
+            document.getElementById("qrBox").innerHTML = `<img src="data:image/png;base64,${data.qr_base64}" alt="WhatsApp QR" />`;
+          }
+          if (data.pairing_code) {
+            document.getElementById("pairingResult").style.display = "block";
+            document.getElementById("pairingCodeText").textContent = data.pairing_code;
+          }
+        } else if (data.status === "error") {
+          badge.className = "badge err";
+          badge.textContent = "Error";
+        } else {
+          badge.className = "badge";
+          badge.textContent = "Connecting WA Web…";
+        }
+      } catch (e) {}
+    }
+    setInterval(pollStatus, 2500);
+    pollStatus();
+
+    async function requestPairingCode() {
+      const phone = document.getElementById("pairPhoneInput").value.trim();
+      const errBox = document.getElementById("pairError");
+      const btn = document.getElementById("getPairBtn");
+      errBox.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "Generating…";
+      try {
+        const fd = new FormData();
+        fd.append("phone", phone);
+        const res = await fetch("/api/pair/", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCookie("csrftoken") },
+          body: fd,
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        document.getElementById("pairingResult").style.display = "block";
+        document.getElementById("pairingCodeText").textContent = data.pairing_code;
+      } catch (e) {
+        errBox.textContent = e.message;
+        errBox.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Get Code";
+      }
+    }
+
+    function copyPairingCode() {
+      const code = document.getElementById("pairingCodeText").textContent.replace("-", "").trim();
+      navigator.clipboard.writeText(code);
+    }
+
+    async function loadChats() {
+      try {
+        const res = await fetch("/api/chats/");
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        const sel = document.getElementById("chatSelect");
+        sel.innerHTML = `<option value="__SELF__">My Self (Saved Messages / Test)</option>`;
+        for (const c of data.chats) {
+          if (c.isReadOnly) continue;
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = (c.isGroup ? "[Group] " : "") + c.name;
+          sel.appendChild(opt);
+        }
+        log(`Loaded ${data.chats.length} recent chats.`);
+      } catch (e) {
+        log("Failed to load chats: " + e.message);
+      }
+    }
+
+    async function logoutWA() {
+      if (!confirm("Disconnect current WhatsApp account and link a new one?")) return;
+      chatsLoaded = false;
+      waReady = false;
+      document.getElementById("pairingResult").style.display = "none";
+      await fetch("/api/logout/", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+      });
+      pollStatus();
+    }
+
+    function onAudioFilePicked(inp) {
+      converted = null;
+      const file = inp.files[0];
+      const player = document.getElementById("uploadAudioPlayer");
+      if (file) {
+        player.src = URL.createObjectURL(file);
+        player.style.display = "block";
+      } else {
+        player.style.display = "none";
+      }
+    }
+
+    // Recording
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          recordedBlob = new Blob(recChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+          const player = document.getElementById("recPlayer");
+          player.src = URL.createObjectURL(recordedBlob);
+          player.style.display = "block";
+          document.getElementById("recStatus").textContent = `Recorded ${(recordedBlob.size / 1024).toFixed(1)} KB`;
+          converted = null;
+        };
+        mediaRecorder.start();
+        recStartTime = Date.now();
+        document.getElementById("recStartBtn").style.display = "none";
+        document.getElementById("recStopBtn").style.display = "inline-flex";
+        document.getElementById("recStatus").textContent = "Recording…";
+        recInterval = setInterval(() => {
+          const sec = (Date.now() - recStartTime) / 1000;
+          document.getElementById("recTimer").textContent = sec.toFixed(1) + "s";
+          if (sec >= 7.8) stopRecording();
+        }, 100);
+      } catch (e) {
+        showBanner("Microphone error: " + e.message, true);
+      }
+    }
+
+    function stopRecording() {
+      clearInterval(recInterval);
+      if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+      document.getElementById("recStartBtn").style.display = "inline-flex";
+      document.getElementById("recStopBtn").style.display = "none";
+    }
+
+    // Build FormData
+    function buildFormData() {
+      const visual = visualInput.files[0];
+      if (!visual) throw new Error("Please select an image, GIF, or video in Step 1.");
+      const fd = new FormData();
+      fd.append("visual", visual);
+      fd.append("fit_mode", fitMode);
+      fd.append("zoom", document.getElementById("zoomSlider").value);
+      fd.append("pan_x", document.getElementById("panXSlider").value);
+      fd.append("pan_y", document.getElementById("panYSlider").value);
+      fd.append("rotate", String(rotateDeg));
+      fd.append("flip_h", flipH ? "1" : "0");
+      if (isVideoMedia) {
+        fd.append("start_sec", document.getElementById("startSlider").value);
+        fd.append("clip_duration", document.getElementById("durSlider").value);
+      }
+      if (activeAudioMode === "meme") {
+        if (!selectedSoundId) throw new Error("Please select a Malayalam Meme / BGM clip in Step 2.");
+        fd.append("preset_sound", selectedSoundId);
+      } else if (activeAudioMode === "record") {
+        if (!recordedBlob) throw new Error("Please record your voice first.");
+        fd.append("audio", recordedBlob, "voice.webm");
+      } else if (activeAudioMode === "upload") {
+        const audioFile = document.getElementById("audioInput").files[0];
+        if (!audioFile) throw new Error("Please choose an audio file.");
+        fd.append("audio", audioFile);
+      } else if (activeAudioMode === "video") {
+        fd.append("use_video_audio", "1");
+      }
+      return fd;
+    }
+
+    async function convertSticker() {
+      try {
+        const fd = buildFormData();
+        showBanner("Converting sticker & audio…");
+        document.getElementById("convertBtn").disabled = true;
+        const res = await fetch("/api/convert/", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCookie("csrftoken") },
+          body: fd,
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        converted = data;
+
+        const pImg = document.getElementById("previewImg");
+        const pAud = document.getElementById("previewAudio");
+        const webpSrc = "data:image/webp;base64," + data.webp_b64;
+        pImg.src = webpSrc;
+        pAud.src = "data:audio/ogg;base64," + data.ogg_b64;
+        pAud.onplay = () => { pImg.src = ""; pImg.src = webpSrc; };
+        document.getElementById("previewMeta").innerHTML =
+          `<b>Sticker:</b> ${data.webp_kb} KB (${data.is_animated ? "Animated" : "Static"} 512×512)<br>` +
+          `<b>Audio:</b> ${data.ogg_kb} KB (OGG Opus, ${data.duration_sec}s)`;
+        document.getElementById("previewSection").style.display = "block";
+        showBanner("Preview ready! Click 'Convert & Send Voice Sticker' to send.");
+        log(`Converted OK: WebP=${data.webp_kb} KB, OGG=${data.ogg_kb} KB, dur=${data.duration_sec}s`);
+      } catch (e) {
+        showBanner(e.message, true);
+        log("Convert failed: " + e.message);
+      } finally {
+        document.getElementById("convertBtn").disabled = false;
+      }
+    }
+
+    async function sendSticker() {
+      try {
+        if (!waReady) throw new Error("WhatsApp is not connected yet.");
+        const customPhone = document.getElementById("customPhone").value.trim();
+        const chatId = customPhone ? customPhone : document.getElementById("chatSelect").value;
+
+        const fd = new FormData();
+        fd.append("chat_id", chatId);
+        if (converted) {
+          fd.append("webp_b64", converted.webp_b64);
+          fd.append("ogg_b64", converted.ogg_b64);
+          fd.append("duration_sec", converted.duration_sec);
+          fd.append("is_animated", converted.is_animated ? "true" : "false");
+        } else {
+          const mediaFd = buildFormData();
+          for (const [k, v] of mediaFd.entries()) fd.append(k, v);
+        }
+
+        document.getElementById("sendBtn").disabled = true;
+        showBanner("Converting & sending voice sticker to WhatsApp…");
+        const res = await fetch("/api/send/", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCookie("csrftoken") },
+          body: fd,
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+
+        showBanner(`✅ Voice sticker sent to ${data.chatName}!`);
+        log(`SENT OK: Chat="${data.chatName}", msgId=${data.msgId}, ack=${data.ack}, gating=${data.gatingMethod}`);
+      } catch (e) {
+        showBanner("Send failed: " + e.message, true);
+        log("Send failed: " + e.message);
+      } finally {
+        document.getElementById("sendBtn").disabled = false;
+      }
+    }
+
+    // Malayalam Meme Soundboard
+    async function loadLocalSounds() {
+      try {
+        const res = await fetch("/api/sounds/");
+        const data = await res.json();
+        localSounds = data.sounds || [];
+        activeCategory = "All";
+        renderCategoryPills(localSounds);
+        renderSoundGrid(localSounds);
+      } catch (e) {
+        log("Failed to load meme sounds: " + e.message);
+      }
+    }
+
+    async function searchOnlineSounds() {
+      const q = document.getElementById("memeSearchInput").value.trim();
+      if (!q) return loadLocalSounds();
+      try {
+        showBanner(`Searching online for "${q}"…`);
+        const res = await fetch(`/api/sounds/search/?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        document.getElementById("catPills").innerHTML = "";
+        renderSoundGrid(data.sounds || []);
+        showBanner(`Found ${(data.sounds || []).length} sounds for "${q}".`);
+      } catch (e) {
+        showBanner("Search failed: " + e.message, true);
+      }
+    }
+
+    function renderCategoryPills(sounds) {
+      const cats = ["All", ...new Set(sounds.map(s => s.category))];
+      const wrap = document.getElementById("catPills");
+      wrap.innerHTML = "";
+      for (const cat of cats) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cat-pill" + (cat === activeCategory ? " active" : "");
+        btn.textContent = cat;
+        btn.onclick = () => {
+          activeCategory = cat;
+          renderCategoryPills(localSounds);
+          renderSoundGrid(cat === "All" ? localSounds : localSounds.filter(s => s.category === cat));
+        };
+        wrap.appendChild(btn);
+      }
+    }
+
+    function renderSoundGrid(sounds) {
+      displayedSounds = sounds;
+      const grid = document.getElementById("soundGrid");
+      if (!sounds.length) {
+        grid.innerHTML = `<span class="muted">No sounds found. Try another keyword.</span>`;
+        return;
+      }
+      grid.innerHTML = "";
+      for (const s of sounds) {
+        const card = document.createElement("div");
+        card.className = "sound-card" + (selectedSoundId === s.id ? " selected" : "");
+        card.onclick = () => {
+          selectedSoundId = s.id;
+          converted = null;
+          document.getElementById("selectedSoundInfo").textContent = "Selected: " + s.title;
+          renderSoundGrid(displayedSounds);
+        };
+
+        const playBtn = document.createElement("button");
+        playBtn.type = "button";
+        playBtn.className = "sound-play";
+        playBtn.textContent = "▶";
+        playBtn.title = "Preview audio";
+        playBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          const p = document.getElementById("soundPreviewPlayer");
+          p.src = s.url;
+          p.play().catch(() => {});
+        };
+
+        const meta = document.createElement("div");
+        meta.style.minWidth = "0";
+        meta.innerHTML = `<div class="sound-title" title="${s.title.replace(/"/g, '&quot;')}">${s.title}</div><div class="sound-cat">${s.category}</div>`;
+
+        card.appendChild(playBtn);
+        card.appendChild(meta);
+        grid.appendChild(card);
+      }
+    }
+
+    loadLocalSounds();
+  </script>
+</body>
+</html>
